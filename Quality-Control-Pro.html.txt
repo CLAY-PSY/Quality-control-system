@@ -1,0 +1,614 @@
+<!--
+MIT License
+
+Copyright (c) 2025 潘少岩
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+-->
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8" />
+<title>三菱镭射质量控制系统 · 专业版</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<style>
+:root{
+  --color-bg:#f3f5f8;
+  --color-bg-alt:#ffffff;
+  --color-border:#d4d9e0;
+  --color-border-strong:#b1b9c4;
+  --color-text:#1e2430;
+  --color-text-soft:#5a6574;
+  --color-primary:#1d60e8;
+  --color-primary-hover:#174fbf;
+  --color-success:#198553;
+  --color-warning:#b37520;
+  --color-danger:#eb5f5a;
+  --color-accent:#0f948d;
+  --radius-s:4px;
+  --radius-m:8px;
+  --trans:.18s cubic-bezier(.4,.2,.1,1);
+  --shadow-sm:0 2px 4px rgba(0,0,0,0.06);
+  --shadow-md:0 4px 12px rgba(0,0,0,0.10);
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
+  font-family:system-ui,-apple-system,"Segoe UI","PingFang SC",sans-serif
+}
+html,body{height:100%}
+body{margin:0;background:var(--color-bg);color:var(--color-text);line-height:1.5;-webkit-font-smoothing:antialiased;overflow:hidden}
+[data-theme=dark]{
+  --color-bg:#111a24;
+  --color-bg-alt:#1d2732;
+  --color-border:#2d3946;
+  --color-border-strong:#3a4958;
+  --color-text:#e7edf3;
+  --color-text-soft:#97a6b6;
+  --color-primary:#3c82f6;
+  --color-primary-hover:#2d6dd8;
+  --color-success:#2fb381;
+  --color-warning:#c79440;
+  --color-danger:#eb5f5a;
+  --color-accent:#14b8a6;
+  --shadow-sm:0 2px 6px rgba(0,0,0,0.4);
+  --shadow-md:0 4px 18px rgba(0,0,0,0.55)
+}
+*{box-sizing:border-box}
+h1{margin:0;font-size:1.1rem;letter-spacing:.5px;font-weight:600}
+small{font-size:.7rem;color:var(--color-text-soft)}
+a{color:var(--color-primary);text-decoration:none}
+a:hover{text-decoration:underline}
+.app{
+  display:grid;
+  grid-template-columns:320px 1fr;
+  grid-template-rows:auto 1fr auto;
+  grid-template-areas:"header header" "sidebar main" "footer footer";
+  height:100vh
+}
+header{
+  grid-area:header;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:10px 20px;
+  background:var(--color-bg-alt);
+  border-bottom:1px solid var(--color-border);
+  box-shadow:var(--shadow-sm);
+  gap:12px
+}
+.header-left{display:flex;align-items:center;gap:16px}
+.status-badge{
+  font-size:.65rem;
+  padding:4px 10px;
+  background:var(--color-bg);
+  border:1px solid var(--color-border);
+  border-radius:999px;
+  color:var(--color-text-soft)
+}
+.sidebar{
+  grid-area:sidebar;
+  background:var(--color-bg-alt);
+  border-right:1px solid var(--color-border);
+  display:flex;
+  flex-direction:column;
+  padding:14px 16px 18px;
+  gap:18px;
+  overflow:auto;
+  overscroll-behavior:contain
+}
+.panel-block{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  padding:12px 12px 14px;
+  border:1px solid var(--color-border);
+  border-radius:var(--radius-m);
+  background:linear-gradient(145deg,var(--color-bg-alt),var(--color-bg));
+  box-shadow:var(--shadow-sm)
+}
+.panel-block h2{
+  margin:0;
+  font-size:.75rem;
+  text-transform:uppercase;
+  letter-spacing:.7px;
+  font-weight:600;
+  color:var(--color-text-soft);
+  display:flex;
+  align-items:center;
+  gap:6px
+}
+.upload-zone{
+  position:relative;
+  border:2px dashed var(--color-border);
+  border-radius:var(--radius-m);
+  padding:18px 14px;
+  text-align:center;
+  font-size:.75rem;
+  color:var(--color-text-soft);
+  cursor:pointer;
+  transition:var(--trans);
+  background:var(--color-bg-alt)
+}
+.upload-zone:hover{border-color:var(--color-primary);color:var(--color-primary)}
+.upload-zone.drag{border-color:var(--color-accent);background:color-mix(in srgb,var(--color-accent)10%,var(--color-bg-alt));color:var(--color-accent)}
+.upload-zone input{position:absolute;inset:0;opacity:0;pointer-events:none}
+.chips-box{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+  padding:6px;
+  border:1px solid var(--color-border);
+  background:var(--color-bg);
+  border-radius:var(--radius-s);
+  min-height:42px
+}
+.chip{
+  background:var(--color-bg-alt);
+  border:1px solid var(--color-border);
+  font-size:.65rem;
+  padding:4px 8px;
+  border-radius:999px;
+  display:flex;
+  align-items:center;
+  gap:4px;
+  line-height:1;
+  animation:fadeIn .25s ease
+}
+.chip button{all:unset;cursor:pointer;font-size:.9rem;line-height:1;color:var(--color-danger)}
+@keyframes fadeIn{from{opacity:0;transform:scale(.8)}to{opacity:1;transform:scale(1)}}
+.token-input{border:none;background:transparent;outline:none;padding:4px;flex:1;font-size:.7rem;min-width:80px;color:var(--color-text)}
+.segmented{display:flex;flex-wrap:wrap;gap:6px}
+.segmented button{flex:1 1 auto;min-width:100px}
+#qualityGroup.segmented{flex-wrap:nowrap !important;overflow-x:auto}
+#qualityGroup.segmented button{flex:1 1 0;min-width:0;white-space:nowrap}
+.btn{
+  position:relative;
+  border:1px solid var(--color-border);
+  background:var(--color-bg-alt);
+  color:var(--color-text);
+  padding:8px 12px;
+  font-size:.7rem;
+  letter-spacing:.5px;
+  text-transform:uppercase;
+  border-radius:var(--radius-s);
+  cursor:pointer;
+  transition:var(--trans);
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+  font-weight:600
+}
+.btn:hover{border-color:var(--color-primary);color:var(--color-primary)}
+.btn--ghost{background:transparent}
+.btn:disabled{opacity:.55;cursor:not-allowed}
+.btn.active{background:var(--color-accent);color:#fff;border-color:var(--color-accent)}
+.action-group{display:flex;flex-wrap:wrap;gap:8px}
+.inline-note{font-size:.6rem;color:var(--color-text-soft);line-height:1.2}
+.shortcuts{
+  font-size:.6rem;
+  border-top:1px dashed var(--color-border);
+  padding-top:8px;
+  line-height:1.4;
+  color:var(--color-text-soft);
+  white-space:pre-line
+}
+.main{
+  grid-area:main;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+  gap:10px;
+  padding:10px 12px 12px
+}
+.toolbar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  background:var(--color-bg-alt);
+  border:1px solid var(--color-border);
+  border-radius:var(--radius-m);
+  padding:6px 10px;
+  gap:12px;
+  font-size:.65rem
+}
+.toolbar-left,.toolbar-right{display:flex;align-items:center;gap:8px}
+.form-check{display:inline-flex;align-items:center;gap:4px;font-size:.6rem;cursor:pointer}
+.workspace{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:10px;min-height:0}
+.workspace.three{grid-template-columns:1fr 1fr 1fr}
+.panel-code{
+  display:flex;
+  flex-direction:column;
+  border:1px solid var(--color-border);
+  background:var(--color-bg-alt);
+  border-radius:var(--radius-m);
+  overflow:hidden;
+  min-height:0;
+  position:relative
+}
+.panel-code header{
+  background:var(--color-bg);
+  border-bottom:1px solid var(--color-border);
+  font-size:.65rem;
+  padding:4px 8px;
+  font-weight:600;
+  display:flex;
+  align-items:center;
+  justify-content:space-between
+}
+.code-body{
+  flex:1;
+  display:flex;
+  overflow:auto;
+  font-family:var(--mono);
+  font-size:.68rem;
+  line-height:1.4;
+  position:relative;
+  overscroll-behavior:contain
+}
+.code-lines{counter-reset:line;padding:6px 0;margin:0;list-style:none;min-width:100%}
+.code-lines li{white-space:pre;padding:0 8px 0 56px;position:relative;border-left:3px solid transparent}
+.code-lines li::before{counter-increment:line;content:counter(line);position:absolute;left:8px;width:38px;text-align:right;padding-right:6px;color:var(--color-text-soft)}
+.code-lines li.added{background:color-mix(in srgb,var(--color-success)18%,transparent);border-left-color:var(--color-success)}
+.code-lines li.highlight{background:color-mix(in srgb,var(--color-primary)10%,transparent)}
+footer{
+  grid-area:footer;
+  background:var(--color-bg-alt);
+  border-top:1px solid var(--color-border);
+  padding:6px 14px;
+  font-size:.6rem;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  color:var(--color-text-soft)
+}
+@media (max-width:1250px){.workspace.three{grid-template-columns:1fr 1fr}.workspace.three .panel-code[data-role=diff]{display:none}}
+@media (max-width:1100px){.app{grid-template-columns:260px 1fr}}
+@media (max-width:900px){
+  .app{grid-template-columns:1fr}
+  .sidebar{flex-direction:row;overflow:auto;grid-area:main;order:1;flex-wrap:wrap}
+  .main{order:2}
+  .workspace{grid-template-columns:1fr}
+}
+#modeGroup .btn,#qualityGroup .btn{display:inline-flex;align-items:center;justify-content:center;text-align:center}
+</style>
+</head>
+<body>
+<div class="app" id="appRoot">
+  <header>
+    <div class="header-left">
+      <h1>三菱镭射质量控制系统 · 专业版</h1>
+      <span id="fileStatus" class="status-badge">未加载</span>
+    </div>
+    <div class="header-right">
+      <button id="themeToggle" class="btn btn--ghost" type="button">🌗 主题</button>
+      <button id="helpToggle" class="btn btn--ghost" type="button">❓ 帮助</button>
+    </div>
+  </header>
+  <aside class="sidebar" id="sidebar">
+    <div class="panel-block">
+      <h2>PRG文件</h2>
+      <div id="uploadZone" class="upload-zone">
+        拖拽或点击选择 .PRG
+        <input id="fileInput" type="file" accept=".prg,.PRG"/>
+      </div>
+      <small class="inline-note">支持快捷键 Ctrl+O</small>
+    </div>
+    <div class="panel-block">
+      <h2>刀具代码</h2>
+      <div id="chipsBox" class="chips-box">
+        <input id="tokenInput" class="token-input" placeholder="输入如 M101 回车"/>
+      </div>
+      <small class="inline-note">范围 M101~M150，重复忽略，Backspace 删除</small>
+    </div>
+    <div class="panel-block">
+      <h2>加工模式</h2>
+      <div id="modeGroup" class="segmented"></div>
+    </div>
+    <div class="panel-block">
+      <h2>质量等级</h2>
+      <div id="qualityGroup" class="segmented"></div>
+    </div>
+    <div class="panel-block">
+      <h2>操作</h2>
+      <div class="action-group">
+        <button id="btnInject" class="btn">植入</button>
+        <button id="btnClear" class="btn">清除</button>
+        <button id="btnReset" class="btn">重置</button>
+        <button id="btnDownload" class="btn">导出</button>
+      </div>
+      <small class="inline-note">Ctrl+I 植入 · Ctrl+Shift+C 清除 · Ctrl+S 导出</small>
+    </div>
+    <div class="panel-block">
+      <h2>视图设置</h2>
+      <div class="action-group">
+        <button id="viewTwo" class="btn">双列</button>
+        <button id="viewThree" class="btn active">三列</button>
+        <button id="toggleDiffMode" class="btn">行内Diff</button>
+      </div>
+      <label class="form-check"><input type="checkbox" id="syncScroll" checked/> 同步滚动</label>
+      <label class="form-check"><input type="checkbox" id="lineHighlight"/> 鼠标行高亮</label>
+    </div>
+    <div class="panel-block">
+      <h2>快捷键</h2>
+      <div class="shortcuts">Ctrl+O 打开文件
+Ctrl+I 植入代码
+Ctrl+Shift+C 清除控制
+Ctrl+S 导出
+Ctrl+R 重置
+Ctrl+D 切换 Diff 面板
+? 打开帮助</div>
+    </div>
+  </aside>
+  <main class="main">
+    <div class="toolbar">
+      <div class="toolbar-left">
+        <span style="font-weight:600;">预览区</span>
+        <span id="statLines" style="color:var(--color-text-soft);"></span>
+      </div>
+      <div class="toolbar-right">
+        <span id="insertionInfo" style="color:var(--color-text-soft);"></span>
+      </div>
+    </div>
+    <div id="workspace" class="workspace three">
+      <div class="panel-code" data-role="original">
+        <header><span>原始文件</span></header>
+        <div class="code-body"><ol id="originalList" class="code-lines"></ol></div>
+      </div>
+      <div class="panel-code" data-role="modified">
+        <header><span>修改后</span></header>
+        <div class="code-body"><ol id="modifiedList" class="code-lines"></ol></div>
+      </div>
+      <div class="panel-code" data-role="diff">
+        <header><span>Diff</span></header>
+        <div class="code-body"><ol id="diffList" class="code-lines"></ol></div>
+      </div>
+    </div>
+  </main>
+  <footer>
+    <span id="footerStatus">系统已就绪</span>
+    <span>Copyright (c) 2025 潘少岩</span>
+  </footer>
+</div>
+<script>
+const MODES=[{code:"M330",label:"标准模式"},{code:"M331",label:"高速模式"}]
+const QUALITIES=[{code:"M485",label:"质量壹级"},{code:"M486",label:"质量贰级"},{code:"M487",label:"质量叁级"}]
+const CONTROL_CODES=["M330","M331","M484","M485","M486","M487"]
+const CONTROL_SET=new Set(CONTROL_CODES)
+const TOOL_REGEX=/^[mM](10[1-9]|1[1-4][0-9]|150)$/
+let originalContent="",modifiedContent="",fileName="",eol="\r\n",toolSet=new Set(),activeMode=null,activeQuality=null,threeColumns=true,inlineDiff=false,lastHighlighted=null,isSyncingScroll=false
+const $=id=>document.getElementById(id)
+const fileStatus=$("fileStatus"),statLines=$("statLines"),insertionInfo=$("insertionInfo"),footerStatus=$("footerStatus"),workspace=$("workspace"),originalList=$("originalList"),modifiedList=$("modifiedList"),diffList=$("diffList"),sidebar=$("sidebar")
+const diffPanel=diffList.closest(".panel-code")
+function showMessage(text){footerStatus.textContent=text}
+function pulseActive(el,ms=220){el.classList.add("active");setTimeout(()=>el.classList.remove("active"),ms)}
+function updateSegments(){renderSegmented("modeGroup",MODES,true);renderSegmented("qualityGroup",QUALITIES,false)}
+function renderSegmented(containerId,data,isMode){
+  const el=$(containerId);el.innerHTML=""
+  data.forEach(item=>{
+    const btn=document.createElement("button");btn.className="btn";btn.textContent=item.label;btn.dataset.code=item.code
+    if((isMode&&activeMode===item.code)||(!isMode&&activeQuality===item.code))btn.classList.add("active")
+    btn.addEventListener("click",()=>{
+      if(isMode){
+        activeMode=activeMode===item.code?null:item.code
+        activeQuality=null
+      }else{
+        activeQuality=activeQuality===item.code?null:item.code
+        activeMode=null
+      }
+      updateSegments()
+    })
+    el.appendChild(btn)
+  })
+}
+function parseToolCodes(txt){
+  const lines=txt.split(/\r?\n/),found=new Set()
+  lines.forEach(l=>{const t=l.trim().toUpperCase();if(TOOL_REGEX.test(t))found.add(t)})
+  return[...found]
+}
+function readFile(file){
+  if(!/\.prg$/i.test(file.name)){showMessage("文件类型需为 .PRG");return}
+  const fr=new FileReader()
+  fr.onload=e=>{
+    originalContent=e.target.result;modifiedContent=originalContent
+    eol=originalContent.includes("\r\n")?"\r\n":"\n"
+    fileName=file.name;fileStatus.textContent=fileName;showMessage("文件加载成功")
+    const codes=parseToolCodes(originalContent)
+    if(codes.length){codes.forEach(c=>toolSet.add(c));renderChips();showMessage("识别刀具: "+codes.join(","))}
+    renderAllViews()
+  }
+  fr.readAsText(file)
+}
+function renderChips(){
+  const box=$("chipsBox"),input=$("tokenInput")
+  box.querySelectorAll(".chip").forEach(c=>c.remove())
+  const frag=document.createDocumentFragment()
+  ;[...toolSet].sort().forEach(code=>{
+    const chip=document.createElement("div");chip.className="chip";chip.textContent=code
+    const del=document.createElement("button");del.type="button";del.textContent="×"
+    del.addEventListener("click",()=>{toolSet.delete(code);renderChips()})
+    chip.appendChild(del);frag.appendChild(chip)
+  })
+  box.insertBefore(frag,input)
+}
+function addTool(raw){
+  const v=raw.trim().toUpperCase();if(!v)return
+  if(!TOOL_REGEX.test(v)){showMessage("格式错误: "+v);return}
+  if(toolSet.has(v)){showMessage("已存在: "+v);return}
+  toolSet.add(v);renderChips()
+}
+function injectControl(){
+  if(!originalContent)return showMessage("请先加载文件")
+  if(!toolSet.size)return showMessage("请添加刀具代码")
+  if(!activeMode&&!activeQuality)return showMessage("请选择模式或质量")
+  const lines=modifiedContent.split(/\r?\n/)
+  if(lines.some(l=>CONTROL_SET.has(l.trim().toUpperCase()))){showMessage("已有控制代码，先清除");return}
+  const arrTools=[...toolSet]
+  const missing=arrTools.filter(t=>!lines.some(l=>l.trim().toUpperCase()===t))
+  if(missing.length){showMessage("文件缺少: "+missing.join(","));return}
+  const codesToInsert=[activeMode,activeQuality].filter(Boolean)
+  let insertedCount=0
+  for(let i=lines.length-1;i>=0;i--){
+    const t=lines[i].trim().toUpperCase()
+    if(toolSet.has(t)){codesToInsert.forEach(code=>{lines.splice(i,0,code);insertedCount++})}
+  }
+  modifiedContent=lines.join(eol)
+  showMessage("植入完成，新增行："+insertedCount)
+  insertionInfo.textContent="新增控制行数："+insertedCount
+  renderAllViews()
+}
+function clearControl(){
+  if(!modifiedContent)return
+  const before=modifiedContent.split(/\r?\n/).length
+  modifiedContent=modifiedContent.split(/\r?\n/).filter(l=>!CONTROL_SET.has(l.trim().toUpperCase())).join(eol)
+  const after=modifiedContent.split(/\r?\n/).length
+  showMessage("已清除控制代码 ("+(before-after)+" 行)")
+  insertionInfo.textContent=""
+  renderAllViews()
+}
+function resetAll(){
+  originalContent="";modifiedContent="";fileName="";eol="\r\n"
+  toolSet.clear()
+  activeMode=null;activeQuality=null
+  fileStatus.textContent="未加载"
+  insertionInfo.textContent=""
+  renderChips()
+  updateSegments()
+  renderAllViews()
+  showMessage("已重置")
+}
+function downloadFile(){
+  if(!modifiedContent)return showMessage("无内容可导出")
+  const a=document.createElement("a")
+  a.href=URL.createObjectURL(new Blob([modifiedContent],{type:"text/plain;charset=utf-8"}))
+  a.download=fileName||"output.prg"
+  document.body.appendChild(a);a.click();document.body.removeChild(a)
+  showMessage("导出成功")
+}
+function renderCode(listEl,content,highlightAdded=false){
+  listEl.innerHTML=""
+  const frag=document.createDocumentFragment()
+  if(!content){const li=document.createElement("li");li.textContent="（空）";frag.appendChild(li);listEl.appendChild(frag);return}
+  const lines=content.split(/\r?\n/)
+  for(const line of lines){
+    const li=document.createElement("li")
+    const trimmed=line.trim().toUpperCase()
+    li.textContent=line||""
+    if(highlightAdded&&CONTROL_SET.has(trimmed))li.classList.add("added")
+    frag.appendChild(li)
+  }
+  listEl.appendChild(frag)
+}
+function renderDiff(){
+  diffList.innerHTML=""
+  const frag=document.createDocumentFragment()
+  if(!originalContent||!modifiedContent){const li=document.createElement("li");li.textContent="（无 Diff）";frag.appendChild(li);diffList.appendChild(frag);return}
+  if(originalContent===modifiedContent){const li=document.createElement("li");li.textContent="无差异";frag.appendChild(li);diffList.appendChild(frag);return}
+  const oLines=originalContent.split(/\r?\n/);const mLines=modifiedContent.split(/\r?\n/);const setO=new Set(oLines)
+  for(const line of mLines){
+    const li=document.createElement("li")
+    const trimmed=line.trim().toUpperCase()
+    li.textContent=line||""
+    if(!setO.has(line)&&CONTROL_SET.has(trimmed))li.classList.add("added")
+    frag.appendChild(li)
+  }
+  diffList.appendChild(frag)
+}
+function renderAllViews(){
+  renderCode(originalList,originalContent)
+  renderCode(modifiedList,modifiedContent,true)
+  renderDiff()
+  const oCount=originalContent?originalContent.split(/\r?\n/).length:0
+  const mCount=modifiedContent?modifiedContent.split(/\r?\n/).length:0
+  statLines.textContent="原始行:"+oCount+" | 当前行:"+mCount
+}
+function getScrollBodies(){return [originalList?.parentElement,modifiedList?.parentElement,diffList?.parentElement].filter(Boolean)}
+function applySyncedScroll(src){
+  if(!$("syncScroll").checked||isSyncingScroll)return
+  isSyncingScroll=true
+  const bodies=getScrollBodies()
+  const ry=src.scrollTop/Math.max(1,src.scrollHeight-src.clientHeight)
+  const rx=src.scrollLeft/Math.max(1,src.scrollWidth-src.clientWidth)
+  bodies.forEach(o=>{if(o===src)return;o.scrollTop=ry*(o.scrollHeight-o.clientHeight);o.scrollLeft=rx*(o.scrollWidth-o.clientWidth)})
+  isSyncingScroll=false
+}
+function setupSync(){getScrollBodies().forEach(el=>el.addEventListener("scroll",()=>applySyncedScroll(el),{passive:true}))}
+function bindEvents(){
+  const zone=$("uploadZone"),input=$("fileInput")
+  zone.addEventListener("click",()=>{input.value="";input.click()})
+  zone.addEventListener("dragover",e=>{e.preventDefault();zone.classList.add("drag")})
+  zone.addEventListener("dragleave",()=>zone.classList.remove("drag"))
+  zone.addEventListener("drop",e=>{e.preventDefault();zone.classList.remove("drag");const f=e.dataTransfer.files[0];if(f)readFile(f)})
+  input.addEventListener("change",e=>{zone.classList.remove("drag");const f=e.target.files[0];if(f)readFile(f)})
+  const ti=$("tokenInput")
+  ti.addEventListener("keydown",e=>{
+    if(e.key==="Enter"){e.preventDefault();addTool(ti.value);ti.value=""}
+    else if(e.key==="Backspace"&&!ti.value){
+      const arr=[...toolSet];if(arr.length){const last=arr[arr.length-1];toolSet.delete(last);renderChips();showMessage("删除: "+last)}
+    }else if(e.key===","){e.preventDefault();addTool(ti.value.replace(",",""));ti.value=""}
+  })
+  ti.addEventListener("blur",()=>{if(ti.value.trim()){addTool(ti.value);ti.value=""}})
+  $("btnInject").addEventListener("click",()=>{pulseActive($("btnInject"));injectControl()})
+  $("btnClear").addEventListener("click",()=>{pulseActive($("btnClear"));clearControl()})
+  $("btnReset").addEventListener("click",()=>{pulseActive($("btnReset"));resetAll()})
+  $("btnDownload").addEventListener("click",()=>{pulseActive($("btnDownload"));downloadFile()})
+  $("viewTwo").addEventListener("click",()=>{threeColumns=false;$("viewTwo").classList.add("active");$("viewThree").classList.remove("active");workspace.classList.remove("three")})
+  $("viewThree").addEventListener("click",()=>{threeColumns=true;$("viewThree").classList.add("active");$("viewTwo").classList.remove("active");workspace.classList.add("three")})
+  $("toggleDiffMode").addEventListener("click",()=>{
+    inlineDiff=!inlineDiff;$("toggleDiffMode").textContent=inlineDiff?"分离Diff":"行内Diff"
+    if(inlineDiff){diffPanel.style.display="none";workspace.classList.remove("three")}
+    else{if(threeColumns)workspace.classList.add("three");diffPanel.style.display=""}
+    renderDiff();showMessage("Diff 模式："+(inlineDiff?"行内":"分离"))
+  })
+  $("themeToggle").addEventListener("click",()=>{
+    const root=document.documentElement;const t=root.getAttribute("data-theme");const next=t==="light"?"dark":"light"
+    root.setAttribute("data-theme",next);try{localStorage.setItem("pref-theme",next)}catch(e){}
+    showMessage("主题："+(next==="dark"?"深色":"浅色"))
+  })
+  $("helpToggle").addEventListener("click",()=>{showMessage("快捷键: Ctrl+O / I / Shift+C / S / R / D / ?")})
+  const workspaceEl=workspace
+  workspaceEl.addEventListener("mousemove",e=>{
+    if(!$("lineHighlight").checked)return
+    const li=e.target.closest("li");if(!li)return
+    if(lastHighlighted&&lastHighlighted!==li)lastHighlighted.classList.remove("highlight")
+    document.querySelectorAll(".code-lines li.highlight").forEach(n=>{if(n!==li)n.classList.remove("highlight")})
+    li.classList.add("highlight");lastHighlighted=li
+  })
+  workspaceEl.addEventListener("mouseleave",()=>{document.querySelectorAll(".code-lines li.highlight").forEach(n=>n.classList.remove("highlight"));lastHighlighted=null})
+  document.addEventListener("keydown",e=>{
+    if(e.ctrlKey&&e.key.toLowerCase()==="o"){e.preventDefault();$("fileInput").click()}
+    else if(e.ctrlKey&&e.key.toLowerCase()==="i"){e.preventDefault();$("btnInject").click()}
+    else if(e.ctrlKey&&e.shiftKey&&e.key.toLowerCase()==="c"){e.preventDefault();$("btnClear").click()}
+    else if(e.ctrlKey&&e.key.toLowerCase()==="s"){e.preventDefault();$("btnDownload").click()}
+    else if(e.ctrlKey&&e.key.toLowerCase()==="r"){e.preventDefault();$("btnReset").click()}
+    else if(e.ctrlKey&&e.key.toLowerCase()==="d"){e.preventDefault();$("toggleDiffMode").click()}
+    else if(e.key==="?"){e.preventDefault();$("helpToggle").click()}
+  })
+}
+function init(){
+  try{const saved=localStorage.getItem("pref-theme");if(saved){document.documentElement.setAttribute("data-theme",saved)}}catch(e){}
+  updateSegments()
+  renderChips()
+  renderAllViews()
+  setupSync()
+  bindEvents()
+  workspace.classList.add("three")
+  showMessage("系统已就绪")
+}
+document.addEventListener("DOMContentLoaded",init)
+</script>
+</body>
+</html>
