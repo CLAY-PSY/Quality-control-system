@@ -566,11 +566,11 @@ function bindEvents(){
   $("btnReset").addEventListener("click",()=>{pulseActive($("btnReset"));resetAll()})
   $("btnDownload").addEventListener("click",()=>{pulseActive($("btnDownload"));downloadFile()})
   $("viewTwo").addEventListener("click",()=>{threeColumns=false;$("viewTwo").classList.add("active");$("viewThree").classList.remove("active");workspace.classList.remove("three")})
-  $("viewThree").addEventListener("click",()=>{threeColumns=true;$("viewThree").classList.add("active");$("viewTwo").classList.remove("active");})
+  $("viewThree").addEventListener("click",()=>{threeColumns=true;$("viewThree").classList.add("active");$("viewTwo").classList.remove("active");workspace.classList.add("three")})
   $("toggleDiffMode").addEventListener("click",()=>{
     inlineDiff=!inlineDiff;$("toggleDiffMode").textContent=inlineDiff?"分离Diff":"行内Diff"
     if(inlineDiff){diffPanel.style.display="none";workspace.classList.remove("three")}
-    else{if(threeColumns);diffPanel.style.display=""}
+    else{if(threeColumns)workspace.classList.add("three");diffPanel.style.display=""}
     renderDiff();showMessage("Diff 模式："+(inlineDiff?"行内":"分离"))
   })
   $("themeToggle").addEventListener("click",()=>{
@@ -605,6 +605,7 @@ function init(){
   renderAllViews()
   setupSync()
   bindEvents()
+  workspace.classList.add("three")
   showMessage("系统已就绪")
 }
 document.addEventListener("DOMContentLoaded",init)
